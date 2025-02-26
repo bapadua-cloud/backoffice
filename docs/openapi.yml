@@ -1,0 +1,305 @@
+openapi: 3.0.0
+info:
+  title: Backoffice API
+  description: API para gerenciamento de administradores e suas permissões
+  version: 1.0.0
+  contact:
+    name: Time de Desenvolvimento
+    email: dev@empresa.com
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor de Desenvolvimento
+
+tags:
+  - name: Administradores
+    description: Operações relacionadas a administradores
+
+paths:
+  /admins:
+    post:
+      tags:
+        - Administradores
+      summary: Criar administrador
+      description: Cria um novo administrador no sistema
+      operationId: createAdmin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAdminDto'
+      responses:
+        '201':
+          description: Administrador criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminResponse'
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '409':
+          description: Email já cadastrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictError'
+    
+    get:
+      tags:
+        - Administradores
+      summary: Listar administradores
+      description: Retorna a lista de administradores com filtros opcionais
+      operationId: findAllAdmins
+      parameters:
+        - in: query
+          name: name
+          schema:
+            type: string
+          description: Filtrar por nome
+        - in: query
+          name: email
+          schema:
+            type: string
+          description: Filtrar por email
+        - in: query
+          name: isActive
+          schema:
+            type: boolean
+          description: Filtrar por status
+      responses:
+        '200':
+          description: Lista de administradores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminResponse'
+
+  /admins/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ID do administrador
+    
+    get:
+      tags:
+        - Administradores
+      summary: Buscar administrador por ID
+      description: Retorna os dados de um administrador específico
+      operationId: findOneAdmin
+      responses:
+        '200':
+          description: Dados do administrador
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminResponse'
+        '404':
+          description: Administrador não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+    
+    patch:
+      tags:
+        - Administradores
+      summary: Atualizar administrador
+      description: Atualiza os dados de um administrador específico
+      operationId: updateAdmin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAdminDto'
+      responses:
+        '200':
+          description: Administrador atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminResponse'
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '404':
+          description: Administrador não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '409':
+          description: Email já cadastrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictError'
+    
+    delete:
+      tags:
+        - Administradores
+      summary: Remover administrador
+      description: Remove um administrador do sistema
+      operationId: removeAdmin
+      responses:
+        '204':
+          description: Administrador removido com sucesso
+        '404':
+          description: Administrador não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+
+components:
+  schemas:
+    CreateAdminDto:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          minLength: 3
+          example: João Silva
+          description: Nome completo do administrador
+        email:
+          type: string
+          format: email
+          example: joao.silva@empresa.com
+          description: Email do administrador
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: Senha@123
+          description: Senha do administrador
+        isActive:
+          type: boolean
+          default: true
+          description: Status do administrador
+    
+    UpdateAdminDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          example: João Silva
+          description: Nome completo do administrador
+        email:
+          type: string
+          format: email
+          example: joao.silva@empresa.com
+          description: Email do administrador
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: Senha@123
+          description: Senha do administrador
+        isActive:
+          type: boolean
+          description: Status do administrador
+    
+    AdminResponse:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - isActive
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        name:
+          type: string
+          example: João Silva
+        email:
+          type: string
+          format: email
+          example: joao.silva@empresa.com
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    
+    BadRequestError:
+      type: object
+      required:
+        - statusCode
+        - message
+        - error
+      properties:
+        statusCode:
+          type: integer
+          example: 400
+        message:
+          type: array
+          items:
+            type: string
+          example:
+            - "email must be an email"
+            - "password must be longer than or equal to 8 characters"
+        error:
+          type: string
+          example: Bad Request
+    
+    NotFoundError:
+      type: object
+      required:
+        - statusCode
+        - message
+        - error
+      properties:
+        statusCode:
+          type: integer
+          example: 404
+        message:
+          type: string
+          example: Administrador não encontrado
+        error:
+          type: string
+          example: Not Found
+    
+    ConflictError:
+      type: object
+      required:
+        - statusCode
+        - message
+        - error
+      properties:
+        statusCode:
+          type: integer
+          example: 409
+        message:
+          type: string
+          example: Email já cadastrado
+        error:
+          type: string
+          example: Conflict 
