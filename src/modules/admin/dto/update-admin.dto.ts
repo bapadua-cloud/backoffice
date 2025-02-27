@@ -1,52 +1,18 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, MinLength, IsArray, IsOptional, IsBoolean } from 'class-validator';
+import { ApiProperty, PartialType, OmitType } from '@nestjs/swagger';
+import { CreateAdminDto } from './create-admin.dto';
+import { IsArray, IsBoolean, IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
 
-export class UpdateAdminDto {
+export class UpdateAdminDto extends PartialType(
+  OmitType(CreateAdminDto, ['roleIds'] as const),
+) {
   @ApiProperty({
-    description: 'Nome completo do administrador',
-    example: 'João Silva',
+    description: 'IDs das roles atribuídas ao administrador (apenas root pode modificar)',
+    example: ['role-id-1', 'role-id-2'],
+    type: [String],
     required: false,
   })
-  @IsString()
-  @MinLength(3)
-  @IsOptional()
-  name?: string;
-
-  @ApiProperty({
-    description: 'Email do administrador',
-    example: 'joao.silva@empresa.com',
-    required: false,
-  })
-  @IsEmail()
-  @IsOptional()
-  email?: string;
-
-  @ApiProperty({
-    description: 'Senha do administrador',
-    example: 'Senha@123',
-    minLength: 8,
-    required: false,
-  })
-  @IsString()
-  @MinLength(8)
-  @IsOptional()
-  password?: string;
-
-  @ApiProperty({
-    description: 'Role IDs',
-    example: ['c3ece45f-6851-4b28-b5e9-a236d5665793'],
-    required: false,
-  })
-  @IsArray()
+  @IsArray({ message: 'As roles devem ser um array' })
+  @IsString({ each: true, message: 'Cada role deve ser uma string' })
   @IsOptional()
   roleIds?: string[];
-
-  @ApiProperty({
-    description: 'Status do administrador',
-    example: true,
-    required: false,
-  })
-  @IsBoolean()
-  @IsOptional()
-  isActive?: boolean;
 } 
